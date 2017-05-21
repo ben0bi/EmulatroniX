@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8" />
+	<title>EmulatroniX</title>
+	<link rel="stylesheet" type="text/css" href="css/base.css">
+</head>
+<body>
+	<div id="wrapper">
+		<div id="pixiscreen"></div>
+	</div>
+	
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+	<script src="https://pixijs.download/v4.5.2/pixi.min.js"></script>
+	<script src="http://cdn.rawgit.com/ben0bi/RUNPIXI.js/v0.6.4/RUNPIXI/RUNPIXI.js"></script>
+	
+	<script>
+		function mainLoop() 
+		{
+		}
+
+		$(document).ready(function() 
+		{
+			RUNPIXI.initialize('pixiscreen', mainLoop);
+			console.log("Ready.");
+		});
+	</script>
+</body>
+</html>
