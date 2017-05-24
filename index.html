@@ -22,17 +22,10 @@
 		var browserBackgroundColor = 0x111133; // also used for the emulator border.
 		var emuBackgroundColor = 0x000000;
 		var emuBorderWidth = 10; // better cover more than less space.
-		
-		function drawPixel(x,y, color,g)
-		{
-			g.beginFill(color, 1.0);
-				g.drawRect(x+emuBorderWidth,y+emuBorderWidth,2,2);
-			g.endFill();
-		}
-		
+				
 		$(document).ready(function() 
 		{
-			RUNPIXI.initialize('pixiscreen', mainLoop, browserBackgroundColor);
+			RUNPIXI.initialize('pixiscreen', mainLoop);//, browserBackgroundColor);
 			RUNPIXI.PIXELATED(); // use this for pixel perfect rendering.
 			
 // NOT EMULATOR SPECIFIC
@@ -46,12 +39,16 @@
 // ENDOF
 			
 			// standard VGA :)
-			var emuWidth = 320;
-			var emuHeight = 240;
+			var emuWidth = 80;
+			var emuHeight = 40;
 			
+// INITIALIZE EMULATOR SCREEN
 			// the draw width is double the emu width.
 			var drawWidth = emuWidth*2;
 			var drawHeight = emuHeight*2;
+			
+			// screen array is a one dimensional array with all the pixels in it.
+			var screenArray=[];
 			
 			// create the background texture.
 			var gbg = new PIXI.Graphics();
@@ -59,32 +56,50 @@
 				gbg.drawRect(emuBorderWidth,emuBorderWidth,drawWidth,drawHeight); // add border width to position to draw border later.
 			gbg.endFill();
 			
-			
 			// draw borders to cover pixels which may be overlap the emulator screen.
-/*			g.beginFill(browserBackgroundColor, 1.0);
-				g.drawRect(0,0,drawWidth+emuBorderWidth*2,emuBorderWidth); // from top right to top left.
-				g.drawRect(0,0,emuBorderWidth,drawHeight+emuBorderWidth*2); // from top right to bottom right.
-				g.drawRect(drawWidth+emuBorderWidth,0,emuBorderWidth,drawHeight+emuBorderWidth*2); // from top left to bottom left.
-				g.drawRect(0,drawHeight+emuBorderWidth,drawWidth+emuBorderWidth*2,emuBorderWidth); // from bottom right to bottom left.
-			g.endFill();
-*/		
+			var gbord = new PIXI.Graphics();
+			gbord.beginFill(browserBackgroundColor, 1.0);
+				gbord.drawRect(0,0,drawWidth+emuBorderWidth*2,emuBorderWidth); // from top right to top left.
+				gbord.drawRect(0,0,emuBorderWidth,drawHeight+emuBorderWidth*2); // from top right to bottom right.
+				gbord.drawRect(drawWidth+emuBorderWidth,0,emuBorderWidth,drawHeight+emuBorderWidth*2); // from top left to bottom left.
+				gbord.drawRect(0,drawHeight+emuBorderWidth,drawWidth+emuBorderWidth*2,emuBorderWidth); // from bottom right to bottom left.
+			gbord.endFill();
+		
 			// generate a texture from that stuff
 			var backgroundTex = gbg.generateCanvasTexture();
+			var borderTex = gbord.generateCanvasTexture();
 
 			// get the screen size to center the sprite.
 			var realScreenWidth = RUNPIXI.getScreenSize().w;
 			var realScreenHeight = RUNPIXI.getScreenSize().h;
 
 			var backgroundsprite = new PIXI.Sprite(backgroundTex);
-			
+			var bordersprite = new PIXI.Sprite(borderTex);
 			// the container holds the whole emulator screen.
 			var container = new PIXI.Container();
 			container.addChild(backgroundsprite);
 
+			// add all the pixels.
+			for(y=0;y<emuHeight;y++)
+			{
+				for(x=0;x<emuWidth;x++)
+				{
+					var pixel = new PIXI.Sprite(pixelTex);
+					//pixel.tint=0xFF0000;
 			
-			var pixel = new PIXI.Sprite(pixelTex);
-			var pixel2 = new PIXI.Sprite(pixelTex);
-			
+					pixel.x = x*2;
+					pixel.y = y*2;
+					container.addChild(pixel);
+					var id = y*x+x;
+					screenArray.push(pixel);
+				}
+			}
+		
+			// finally add the border.
+			bordersprite.x = -emuBorderWidth;
+			bordersprite.y = -emuBorderWidth;
+			container.addChild(bordersprite);
+// ENDOF INITIALIZE EMULATOR SCREEN
 			
 		/*	container.scale.x=0.5;
 			container.scale.y=0.5;
@@ -93,21 +108,15 @@
 			// center the container AFTER scaling.
 			container.x = realScreenWidth*0.5-container.width*0.5;
 			container.y = realScreenHeight*0.5-container.height*0.5;
-
-			pixel2.tint=0xFF0000;
-			
-			pixel.x = 10;
-			pixel.y = 10;
-			
-			pixel2.x=20;
-			pixel2.y=20;
-			container.addChild(pixel);
-			container.addChild(pixel2);
 			
 			RSTAGE().addChild(container);
 			
-			pixel.tint=0x0000FF;
-
+			for(a=0;a<screenArray.length;a++)
+			{
+				screenArray[5].tint=0xFF0000;
+				console.log(a);
+			}
+			
 			console.log("Ready.");
 		});
 	</script>
