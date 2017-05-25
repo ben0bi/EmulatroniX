@@ -14,33 +14,29 @@
 	<script src="https://pixijs.download/v4.5.2/pixi.min.js"></script>
 	<script src="http://cdn.rawgit.com/ben0bi/RUNPIXI.js/v0.6.4/RUNPIXI/RUNPIXI.js"></script>
 	
+	<!-- NEW for part 2.1 -->
+	<script src="js/EmuGraphicsAdapter.js"></script>
+	
 	<script>
 		function mainLoop() 
 		{
 		}
-
-		var browserBackgroundColor = 0x111133; // also used for the emulator border.
-		var emuBackgroundColor = 0x000000;
-		var emuBorderWidth = 10; // better cover more than less space.
 				
 		$(document).ready(function() 
 		{
+			var browserBackgroundColor = 0x111133;
 			RUNPIXI.initialize('pixiscreen', mainLoop);//, browserBackgroundColor);
+			
+			// NEW for part 2.1
 			RUNPIXI.PIXELATED(); // use this for pixel perfect rendering.
 			
-// NOT EMULATOR SPECIFIC
-			// create the pixel texture.
-			var gpix = new PIXI.Graphics();
-			gpix.beginFill(0xFFFFFF, 1.0);
-				gpix.drawRect(0,0,2,2);
-			gpix.endFill();
+		var emuWidth = 160;
+		var emuHeight = 40;
+		var emuGraphics = new EmuGraphicsAdapter(emuWidth, emuHeight);
+		var emuBackgroundColor = emuGraphics.getBackgroundColor();
+		var emuBorderWidth = emuGraphics.getBorderWidth();
+		var pixelTex = EmuGraphicsAdapter.originalPixelTex;
 			
-			var pixelTex = gpix.generateCanvasTexture();
-// ENDOF
-			
-			// standard VGA :)
-			var emuWidth = 80;
-			var emuHeight = 40;
 			
 // INITIALIZE EMULATOR SCREEN
 			// the draw width is double the emu width.
@@ -114,7 +110,6 @@
 			for(a=0;a<screenArray.length;a++)
 			{
 				screenArray[5].tint=0xFF0000;
-				console.log(a);
 			}
 			
 			console.log("Ready.");
