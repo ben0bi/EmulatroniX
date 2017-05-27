@@ -25,92 +25,19 @@
 		$(document).ready(function() 
 		{
 			var browserBackgroundColor = 0x111133;
-			RUNPIXI.initialize('pixiscreen', mainLoop);//, browserBackgroundColor);
+			RUNPIXI.initialize('pixiscreen', mainLoop, browserBackgroundColor);
 			
 			// NEW for part 2.1
 			RUNPIXI.PIXELATED(); // use this for pixel perfect rendering.
 			
-		var emuWidth = 160;
-		var emuHeight = 40;
-		var emuGraphics = new EmuGraphicsAdapter(emuWidth, emuHeight);
-		var emuBackgroundColor = emuGraphics.getBackgroundColor();
-		var emuBorderWidth = emuGraphics.getBorderWidth();
-		var pixelTex = EmuGraphicsAdapter.originalPixelTex;
-			
-			
-// INITIALIZE EMULATOR SCREEN
-			// the draw width is double the emu width.
-			var drawWidth = emuWidth*2;
-			var drawHeight = emuHeight*2;
-			
-			// screen array is a one dimensional array with all the pixels in it.
-			var screenArray=[];
-			
-			// create the background texture.
-			var gbg = new PIXI.Graphics();
-			gbg.beginFill(emuBackgroundColor, 1.0);
-				gbg.drawRect(emuBorderWidth,emuBorderWidth,drawWidth,drawHeight); // add border width to position to draw border later.
-			gbg.endFill();
-			
-			// draw borders to cover pixels which may be overlap the emulator screen.
-			var gbord = new PIXI.Graphics();
-			gbord.beginFill(browserBackgroundColor, 1.0);
-				gbord.drawRect(0,0,drawWidth+emuBorderWidth*2,emuBorderWidth); // from top right to top left.
-				gbord.drawRect(0,0,emuBorderWidth,drawHeight+emuBorderWidth*2); // from top right to bottom right.
-				gbord.drawRect(drawWidth+emuBorderWidth,0,emuBorderWidth,drawHeight+emuBorderWidth*2); // from top left to bottom left.
-				gbord.drawRect(0,drawHeight+emuBorderWidth,drawWidth+emuBorderWidth*2,emuBorderWidth); // from bottom right to bottom left.
-			gbord.endFill();
-		
-			// generate a texture from that stuff
-			var backgroundTex = gbg.generateCanvasTexture();
-			var borderTex = gbord.generateCanvasTexture();
-
-			// get the screen size to center the sprite.
-			var realScreenWidth = RUNPIXI.getScreenSize().w;
-			var realScreenHeight = RUNPIXI.getScreenSize().h;
-
-			var backgroundsprite = new PIXI.Sprite(backgroundTex);
-			var bordersprite = new PIXI.Sprite(borderTex);
-			// the container holds the whole emulator screen.
-			var container = new PIXI.Container();
-			container.addChild(backgroundsprite);
-
-			// add all the pixels.
-			for(y=0;y<emuHeight;y++)
-			{
-				for(x=0;x<emuWidth;x++)
-				{
-					var pixel = new PIXI.Sprite(pixelTex);
-					//pixel.tint=0xFF0000;
-			
-					pixel.x = x*2;
-					pixel.y = y*2;
-					container.addChild(pixel);
-					var id = y*x+x;
-					screenArray.push(pixel);
-				}
-			}
-		
-			// finally add the border.
-			bordersprite.x = -emuBorderWidth;
-			bordersprite.y = -emuBorderWidth;
-			container.addChild(bordersprite);
-// ENDOF INITIALIZE EMULATOR SCREEN
-			
-		/*	container.scale.x=0.5;
-			container.scale.y=0.5;
-*/
-
-			// center the container AFTER scaling.
-			container.x = realScreenWidth*0.5-container.width*0.5;
-			container.y = realScreenHeight*0.5-container.height*0.5;
-			
-			RSTAGE().addChild(container);
-			
-			for(a=0;a<screenArray.length;a++)
-			{
-				screenArray[5].tint=0xFF0000;
-			}
+			var emuWidth = 160;
+			var emuHeight = 40;
+			var emuGraphics = new EmuGraphicsAdapter(emuWidth, emuHeight);
+			emuGraphics.fill(0xFF0000);
+			emuGraphics.switchBuffers();
+			//emuGraphics.initialize(50, 160,0x000000,browserBackgroundColor);
+			emuGraphics.fill(0x00FF00);
+			emuGraphics.switchBuffers();
 			
 			console.log("Ready.");
 		});
