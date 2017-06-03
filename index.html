@@ -30,9 +30,9 @@
 			// NEW for part 2.1
 			RUNPIXI.PIXELATED(); // use this for pixel perfect rendering.
 			
-			var emuWidth = 160;
+			var emuWidth = 80;
 			var emuHeight = 40;
-			var emuGraphics = new EmuGraphicsAdapter(emuWidth, emuHeight);
+			var emuGraphics = new EmuGraphicsAdapter(emuWidth, emuHeight,0x000000,0x3333AA);
 			emuGraphics.fill(0xFF0000);
 			emuGraphics.switchBuffers();
 			//emuGraphics.initialize(50, 160,0x000000,browserBackgroundColor);

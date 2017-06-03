@@ -8,7 +8,6 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 	this.getBackgroundColor = function() {return emuBackgroundColor;}
 	
 	var emuBorderWidth = 10; 				// better cover more than less space.
-	this.getBorderWidth = function() {return emuBorderWidth;}
 	
 	// width and height of the emulator screen.
 	var emuScreenWidth = 40;
@@ -140,11 +139,13 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 		console.log("EmuGraphicsAdapter: Screen with size "+emuScreenWidth+"x"+emuScreenHeight+" created (double sized and double buffered).");
 	}
 	
+	// switch the buffers.
 	this.switchBuffers = function()
 	{
-		EmuGraphicsAdapter.containers[doubleBufferIndex].visible = true;	// show the old buffer.
+		var oldBuf = doubleBufferIndex;
 		doubleBufferIndex=Math.abs(doubleBufferIndex - 1);	// create the new index: abs(0 - 1) = 1, abs(1 - 1) = 0 ....
 		EmuGraphicsAdapter.containers[doubleBufferIndex].visible = false;	// actual buffer is hidden for drawing on it.
+		EmuGraphicsAdapter.containers[oldBuf].visible = true;	// show the old buffer.
 	}
 	
 	// resize the screen.
@@ -153,16 +154,16 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 		// get the screen size to center the sprite.
 		var realScreenWidth = RUNPIXI.getScreenSize().w;
 		var realScreenHeight = RUNPIXI.getScreenSize().h;
-
+		
 		for(var i=0;i<EmuGraphicsAdapter.containers.length;i++)
 		{
-			EmuGraphicsAdapter.containers[i].x = realScreenWidth*0.5-EmuGraphicsAdapter.containers[i].width*0.5;
-			EmuGraphicsAdapter.containers[i].y = realScreenHeight*0.5-EmuGraphicsAdapter.containers[i].height*0.5;
+			var container = EmuGraphicsAdapter.containers[i];
+			container.x = realScreenWidth*0.5-container.width*0.5;
+			container.y = realScreenHeight*0.5-container.height*0.5;
 		}
 	}
 	
 	// fill the whole screen with a specific color.
-	this.fill = function(color) { fillBuffer(color, doubleBufferIndex);	}
 	var fillBuffer = function(color, bufferIndex)
 	{
 		if(screenArray[bufferIndex].length<=0)
@@ -174,6 +175,8 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 		}		
 	}
 	
+	this.fill = function(color) { fillBuffer(color, doubleBufferIndex);	}
+
 	// fill the whole screen with the emulator background color.
 	this.clear = function() {this.fill(emuBackgroundColor);}
 	
