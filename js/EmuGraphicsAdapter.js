@@ -2,26 +2,26 @@
 var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 {
 	var PIXIStage = RSTAGE();
-	
-	var emuBorderColor = 0x111133; 	// usually same as the browser background color.
-	var emuBackgroundColor = 0x000000;		// the background color of the emulator itself.
+
+	var emuBorderColor = 0x111133; 		// usually same as the browser background color.
+	var emuBackgroundColor = 0x000000;	// the background color of the emulator itself.
 	this.getBackgroundColor = function() {return emuBackgroundColor;}
-	
-	var emuBorderWidth = 10; 				// better cover more than less space.
-	
+
+	var emuBorderWidth = 10; 		// better cover more than less space.
+
 	// width and height of the emulator screen.
 	var emuScreenWidth = 40;
 	var emuScreenHeight = 40;
-	
+
 	// drawing width and height is emu width and height * 2
 	var emuDrawWidth = emuScreenWidth * 2;
 	var emuDrawHeight = emuScreenHeight * 2;
-	
+
 	// double buffering.
 	var doubleBufferIndex = 0;				// 0 or 1.
 	var screenArray = [];					// this array holds 2 screen arrays for double buffering.
 	//var containers = [];					// this array holds the containers for that 2 screen arrays.
-	
+
 	this.initialize = function(width, height,bgColor,borderColor)
 	{
 		// get and set some values.
@@ -29,7 +29,7 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 			emuScreenWidth = width;
 		if(height)
 			emuScreenHeight = height;
-	
+
 		// maybe set the border color.
 		if(bgColor)
 			emuBackgroundColor=bgColor;
@@ -39,7 +39,7 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 		// drawing width and height is emu width and height * 2
 		emuDrawWidth = emuScreenWidth * 2;
 		emuDrawHeight = emuScreenHeight * 2;
-		
+
 		// maybe detach the old containers.
 		if(EmuGraphicsAdapter.containers.length>0)
 		{
@@ -50,13 +50,13 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 
 		// maybe we need to create the original pixel texture.
 		EmuGraphicsAdapter.createOriginalPixelTex();
-		
+
 		// create the background texture.
 		var gbg = new PIXI.Graphics();
 		gbg.beginFill(emuBackgroundColor, 1.0);
 			gbg.drawRect(0,0,emuDrawWidth,emuDrawHeight); // add border width to position to draw border later.
 		gbg.endFill();
-			
+
 		// draw borders to cover pixels which may be overlap the emulator screen.
 		var gbord = new PIXI.Graphics();
 		gbord.beginFill(emuBorderColor, 1.0);
@@ -65,7 +65,7 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 			gbord.drawRect(emuDrawWidth+emuBorderWidth,0,emuBorderWidth,emuDrawHeight+emuBorderWidth*2); // from top left to bottom left.
 			gbord.drawRect(0,emuDrawHeight+emuBorderWidth,emuDrawWidth+emuBorderWidth*2,emuBorderWidth); // from bottom right to bottom left.
 		gbord.endFill();
-		
+
 		// generate a texture from that stuff
 		var backgroundTex = gbg.generateCanvasTexture();
 		var borderTex = gbord.generateCanvasTexture();
@@ -74,7 +74,7 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 		var backgroundsprite2 = new PIXI.Sprite(backgroundTex);
 		var bordersprite1 = new PIXI.Sprite(borderTex);
 		var bordersprite2 = new PIXI.Sprite(borderTex);
-		
+
 		// the container holds the whole emulator screen.
 		var container1 = new PIXI.Container();
 		var container2 = new PIXI.Container();
@@ -103,7 +103,7 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 				arr2.push(pixel2);
 			}
 		}
-		
+
 		// add the border.
 		bordersprite1.x = -emuBorderWidth;
 		bordersprite1.y = -emuBorderWidth;
@@ -111,7 +111,7 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 		bordersprite2.y = -emuBorderWidth;
 		container1.addChild(bordersprite1);
 		container2.addChild(bordersprite2);
-		
+
 		// add the containers and the screen arrays to the buffer arrays.
 		EmuGraphicsAdapter.containers = [];
 		EmuGraphicsAdapter.containers.push(container1);
@@ -119,7 +119,7 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 		screenArray = [];
 		screenArray.push(arr1);
 		screenArray.push(arr2);
-		
+
 		doubleBufferIndex = 0;
 
 		// add the containers to the pixi stage.
@@ -138,7 +138,9 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 
 		console.log("EmuGraphicsAdapter: Screen with size "+emuScreenWidth+"x"+emuScreenHeight+" created (double sized and double buffered).");
 	}
-	
+
+// NEW FOR PART 2.1_2
+
 	// switch the buffers.
 	this.switchBuffers = function()
 	{
@@ -147,14 +149,14 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 		EmuGraphicsAdapter.containers[doubleBufferIndex].visible = false;	// actual buffer is hidden for drawing on it.
 		EmuGraphicsAdapter.containers[oldBuf].visible = true;	// show the old buffer.
 	}
-	
+
 	// resize the screen.
 	this.reposition = function()
 	{
 		// get the screen size to center the sprite.
 		var realScreenWidth = RUNPIXI.getScreenSize().w;
 		var realScreenHeight = RUNPIXI.getScreenSize().h;
-		
+
 		for(var i=0;i<EmuGraphicsAdapter.containers.length;i++)
 		{
 			var container = EmuGraphicsAdapter.containers[i];
@@ -162,24 +164,24 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 			container.y = realScreenHeight*0.5-container.height*0.5;
 		}
 	}
-	
+
 	// fill the whole screen with a specific color.
 	var fillBuffer = function(color, bufferIndex)
 	{
 		if(screenArray[bufferIndex].length<=0)
 			return;
-		
+
 		for(z=0;z<screenArray[bufferIndex].length;z++)
 		{
 			screenArray[bufferIndex][z].tint = color;
-		}		
+		}
 	}
-	
+
 	this.fill = function(color) { fillBuffer(color, doubleBufferIndex);	}
 
 	// fill the whole screen with the emulator background color.
 	this.clear = function() {this.fill(emuBackgroundColor);}
-	
+
 	// initialize the new screen.
 	this.initialize(newwidth, newheight, bgcolor, bordercolor);
 }
@@ -196,14 +198,14 @@ EmuGraphicsAdapter.createOriginalPixelTex = function()
 		console.log("EmuGraphicsAdapter: Pixel texture already created.");
 		return;
 	}
-	
+
 	// create the pixel texture.
 	var gpix = new PIXI.Graphics();
 	gpix.beginFill(0xFFFFFF, 1.0);
 		gpix.drawRect(0,0,2,2);
 	gpix.endFill();
-			
+
 	EmuGraphicsAdapter.originalPixelTex = gpix.generateCanvasTexture();
 	console.log("EmuGraphicsAdapter: CREATED original pixel texture.");
 }
-//EmuGraphicsAdapter.singleton = new EmuGraphicsAdapter();
+
