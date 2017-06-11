@@ -181,6 +181,89 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 
 	// fill the whole screen with the emulator background color.
 	this.clear = function() {this.fill(emuBackgroundColor);}
+	
+	// NEW FOR 2.1_3
+	
+	// color one specific pixel by array index.
+	this.pixelIndex = function(arrIndex, color)
+	{
+		if(arrIndex >= 0&&arrIndex < screenArray[doubleBufferIndex].length)
+			screenArray[doubleBufferIndex][arrIndex].tint = color;
+	}
+
+	// color one specific pixel.
+	this.pixel = function(x,y,color)
+	{
+		var z = y * emuScreenWidth + x;
+		this.pixelIndex(z, color);
+	}
+	
+	// copy a color array to the screen.
+	this.arrayToScreen = function(arr)
+	{
+		var maxZ = arr.length;
+		if(screenArray[doubleBufferIndex].length<maxZ)
+			maxZ = screenArray[doubleBufferIndex].length;
+		for(var z=0;z < maxZ;z++)
+		{
+			this.pixelIndex(z,arr[z]);
+		}
+	}
+	
+	// uses the array values as palette index.
+	this.arrayFromPaletteToScreen = function(arr, paletteArray)
+	{
+		var maxZ = arr.length;
+		if(screenArray[doubleBufferIndex].length<maxZ)
+			maxZ = screenArray[doubleBufferIndex].length;
+		for(var z=0;z < maxZ;z++)
+		{
+			this.pixelIndex(z, emuBackgroundColor);
+			var a = arr[z];
+			if(a >= 0 && a < paletteArray.length)
+				this.pixelIndex(z,paletteArray[a]);
+		}
+		
+	}
+
+	// returns an array in the size of the screen.
+	// filled with the backbuffer content.
+	this.screenToArray = function()
+	{
+		var arr = [];
+		for(z=0;z < screenArray[doubleBufferIndex].length; z++)
+		{
+			arr.push(screenArray[doubleBufferIndex][z]);
+		}
+		return arr;
+	}
+
+	// create an attraction image.
+	var attractionImage = null;
+	this.createAttractionImage = function()
+	{
+		attractionImage = this.screenToArray();
+		
+		// just generate a random noise images
+		for(var z = 0; z < attractionImage.length; z++)
+		{
+			var color = parseInt(Math.random()*0xFFFFFF);
+			attractionImage[z] = color;
+		}
+	}
+	
+	// update the attraction image.
+	this.updateAttractionImage = function()
+	{
+		if(attractionImage==null)
+			return;
+		
+		this.createAttractionImage();
+		
+		this.arrayToScreen(attractionImage);
+	}
+
+	// ENDOF NEW FOR 2.1_3
 
 	// initialize the new screen.
 	this.initialize(newwidth, newheight, bgcolor, bordercolor);
