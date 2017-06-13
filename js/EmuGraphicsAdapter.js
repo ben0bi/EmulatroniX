@@ -215,11 +215,12 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 		var maxZ = arr.length;
 		if(screenArray[doubleBufferIndex].length<maxZ)
 			maxZ = screenArray[doubleBufferIndex].length;
+		var paletteSize = paletteArray.length;
 		for(var z=0;z < maxZ;z++)
 		{
 			this.pixelIndex(z, emuBackgroundColor);
-			var a = arr[z];
-			if(a >= 0 && a < paletteArray.length)
+			var a = arr[z] % paletteSize;	// modulo the value through paletteSize
+//			if(a >= 0 && a < paletteArray.length)
 				this.pixelIndex(z,paletteArray[a]);
 		}
 		
@@ -240,58 +241,104 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 	// create an attraction image.
 	var attractionImage = null;
 	var attractionPalette = null;
+	var attractionPaletteMultiplier = 4;
 	this.createAttractionImage = function()
 	{
-		// attraction image colors go now from 0 to 255,
-		// first we create a palette for it.
+		// attraction image has a palette with 256 entries, each 32 entries another color raises/lowers.
+		// first we create the palette.
 		attractionPalette = [];
-		for(var q = 0;q<8;q++)
+		// we need just one palette and repeat it with the height map values (index%paletteSize).
+		var red = 0;
+		var green = 0;
+		var blue = 0;
+
+		// 0-31 + black to red
+		for(var p=0;p<32;p++)
 		{
-			var red = 0;
-			var green = 0;
-			var blue = 0;
-			for(var p=0;p<32;p++)
-			{
-				red = p*8; 		// red up
-				blue = (31-p)*8; // blue down
-				green = 0;
-				attractionPalette.push(RGB(red,green,blue));
-			}
-
-			for(var p=0;p<32;p++)
-			{
-				red = 0xFF; 	// red stays
-				green = p * 8;  // green up
-				blue = 0;
-				attractionPalette.push(RGB(red,green,blue));
-			}
-
-			for(var p=0;p<32;p++)
-			{
-				red = (31-p)*8; // red down
-				blue = 0;
-				green = 0xFF; 	// green stays
-				attractionPalette.push(RGB(red,green,blue));
-			}
-
-			for(var p=0;p<32;p++)
-			{
-				red = 0;
-				blue = p *8;		// blue up
-				green = (31-p)*8; 	// green down
-				attractionPalette.push(RGB(red,green,blue));
-			}
+			red = p*8; 		// red up
+			blue = 0;
+			green = 0;
+			attractionPalette.push(RGB(red,green,blue));
 		}
-		
-		attractionImage = this.screenToArray();
-		var al = attractionImage.length;
+
+		// 32-63 + red to yellow
+		for(var p=0;p<32;p++)
+		{
+			red = 0xFF; 	// red stays
+			green = p * 8;  // green up
+			blue = 0;
+			attractionPalette.push(RGB(red,green,blue));
+		}
+
+		// 64-95 + yellow to green
+		for(var p=0;p<32;p++)
+		{
+			red = (31-p)*8; // red down
+			blue = 0;
+			green = 0xFF; 	// green stays
+			attractionPalette.push(RGB(red,green,blue));
+		}
+
+		// 96-127 + green to turkis
+		for(var p=0;p<32;p++)
+		{
+			red = 0;
+			blue = p * 8;		// blue up
+			green = 0xFF;		// green stays
+			attractionPalette.push(RGB(red,green,blue));
+		}
+			
+		// 128-159 + turkis to blue
+		for(var p=0;p<32;p++)
+		{
+			red = 0;
+			blue = 0xFF;		// blue stays
+			green = (31-p)*8;	// green down
+			attractionPalette.push(RGB(red,green,blue));
+		}
+
+		// 160-191 + blue to magenta
+		for(var p=0;p<32;p++)
+		{
+			red = p * 8;		// red up
+			blue = 0xFF;		// blue stays
+			green=0;
+			attractionPalette.push(RGB(red,green,blue));
+		}
+
+		// 192-224 + magenta to red
+		for(var p=0;p<32;p++)
+		{
+			red = 0xFF;				// red stays
+			blue = (31-p)*8;		// blue down
+			green = 0; 
+			attractionPalette.push(RGB(red,green,blue));
+		}
+			
+		// 226-255 + red to black
+		for(var p=0;p<32;p++)
+		{
+			red = (31-p)*8;		// red down 
+			blue = 0;
+			green = 0;		 
+			attractionPalette.push(RGB(red,green,blue));
+		}
+
+		// now generate the image itself.
+		attractionImage = this.screenToArray();	// get screen image
+		var al = attractionImage.length;		// length of screen image array.
+		var palSize = attractionPalette.length;
+		var maxValue = (palSize * attractionPaletteMultiplier)-1;
 		
 		// just generate a random noise image
 		for(var z = 0; z < al; z++)
 		{
-			var color = parseInt(Math.random()*1024);
-			if(color < 150)
+			var color = parseInt(Math.random()*maxValue);
+			
+			// little more black in the image.
+			if(color < maxValue * 0.25)
 				color = 0;
+			
 			attractionImage[z] = color;
 		}
 		
@@ -362,9 +409,9 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 					
 					if(color>0)
 						color = parseInt(color/dividor);
-					if(color>1023)
-						color=1023;
-					attractionImage[myIndex]= color;
+					if(color>maxValue)
+						color=maxValue;
+					attractionImage[myIndex] = color;
 				}
 			}
 		}
