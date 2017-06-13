@@ -98,12 +98,12 @@ var Plasma = function(emuGraphicsAdapter)
 
 		// now generate the image itself.
 		plasmaImage = GFX.screenToArray();	// get screen image
-		var al = plasmaImage.length;		// length of screen image array.
+		var arraySize = plasmaImage.length;		// length of screen image array.
 		var palSize = plasmaPalette.length;
 		var maxValue = (palSize * plasmaPaletteMultiplier)-1;
 		
 		// just generate a random noise image
-		for(var z = 0; z < al; z++)
+		for(var z = 0; z < arraySize; z++)
 		{
 			var color = parseInt(Math.random()*maxValue);
 			
@@ -125,67 +125,29 @@ var Plasma = function(emuGraphicsAdapter)
 				for(var x=0;x<emuScreenWidth;x++)
 				{
 					var myIndex = y*emuScreenWidth+x;
-					var middleLeft = y*emuScreenWidth+x-1;
-					var middleRight = y*emuScreenWidth+x+1;
+					var color = 0;
+					var dividor = 0;
 					
-					var topLeft = (y-1)*emuScreenWidth + x - 1;
-					var topMiddle = (y-1)*emuScreenWidth + x;
-					var topRight = (y-1)*emuScreenWidth + x + 1;
-										
-					var bottomLeft = (y+1)*emuScreenWidth + x - 1;
-					var bottomMiddle = (y+1)*emuScreenWidth + x;
-					var bottomRight = (y+1)*emuScreenWidth + x + 1;
-					
-					var dividor = 1;
-					var color = plasmaImage[myIndex];
-					
-					if(middleLeft>=0 && middleLeft<al)
+					// get all colors around that pixel
+					for(difx = -1; difx<=1; difx++)
 					{
-						color += plasmaImage[middleLeft];
-						dividor += 1;
-					}
-					if(middleRight>=0 && middleRight<al)
-					{
-						color += plasmaImage[middleRight];
-						dividor += 1;
-					}
-					
-					if(topLeft>=0 && topLeft<al)
-					{
-						color += plasmaImage[topLeft];
-						dividor += 1;
-					}
-					if(topMiddle>=0 && topMiddle<al)
-					{
-						color += plasmaImage[topMiddle];
-						dividor += 1;
-					}
-					if(topRight>=0 && topRight<al)
-					{
-						color += plasmaImage[topRight];
-						dividor += 1;
+						for(dify = -1; dify<=1; dify++)
+						{
+							var index = (y+dify)*emuScreenWidth+x+difx;
+							if(index>=0 && index<arraySize)
+							{
+								color+=plasmaImage[index];
+								dividor++;
+							}
+						}
 					}
 
-					if(bottomLeft>=0 && bottomLeft<al)
-					{
-						color += plasmaImage[bottomLeft];
-						dividor += 1;
-					}
-					if(bottomMiddle>=0 && bottomMiddle<al)
-					{
-						color += plasmaImage[bottomMiddle];
-						dividor += 1;
-					}
-					if(bottomRight>=0 && bottomRight<al)
-					{
-						color += plasmaImage[bottomRight];
-						dividor += 1;
-					}
-					
-					if(color>0)
+					if(color>0 && dividor>0)
 						color = parseInt(color/dividor);
+					
 					if(color>maxValue)
 						color=maxValue;
+
 					plasmaImage[myIndex] = color;
 				}
 			}
