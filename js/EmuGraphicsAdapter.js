@@ -20,7 +20,6 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 	// double buffering.
 	var doubleBufferIndex = 0;				// 0 or 1.
 	var screenArray = [];					// this array holds 2 screen arrays for double buffering.
-	//var containers = [];					// this array holds the containers for that 2 screen arrays.
 
 	this.initialize = function(width, height,bgColor,borderColor)
 	{
@@ -240,27 +239,166 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 
 	// create an attraction image.
 	var attractionImage = null;
+	var attractionPalette = null;
 	this.createAttractionImage = function()
 	{
-		attractionImage = this.screenToArray();
-		
-		// just generate a random noise images
-		for(var z = 0; z < attractionImage.length; z++)
+		// attraction image colors go now from 0 to 255,
+		// first we create a palette for it.
+		attractionPalette = [];
+		for(var p = 0;p < 0xFF; p++)
 		{
-			var color = parseInt(Math.random()*0xFFFFFF);
+			var red = 0;
+			var green = 0;
+			var blue = 0;
+			
+			if(p<64)
+			{
+				red = p*4; // red up from black
+				blue = (63-p)*4;
+				//green = 0xFF; // green stays
+			}
+			
+			if(p>=64 && p<128)
+			{
+				red = 0xFF; 		// red stays
+				green = (p-64) * 4; // green up
+			}
+
+			if(p>=128 && p<192)
+			{
+				// red down
+				red = (64-(p-127)) * 4;
+				green = 0xFF; // green stays
+			}
+			
+			if(p>=192)
+			{
+				// blue up
+				blue = (p-191)*4;
+				green=(64-(p-191))*4; // green down
+			}
+
+			attractionPalette.push(RGB(red,green,blue));
+		}
+
+		attractionImage = this.screenToArray();
+		var al = attractionImage.length;
+		
+		// just generate a random noise image
+		for(var z = 0; z < al; z++)
+		{
+			var color = parseInt(Math.random()*0x0000FF);
+			if(color < 150)
+				color = 0;
 			attractionImage[z] = color;
 		}
+		
+		// refine the image, create "height map"
+		for(var steps =0;steps < 4;steps++)
+		{
+			for(var y=0;y<emuScreenHeight;y++)
+			{
+				for(var x=0;x<emuScreenWidth;x++)
+				{
+					var myIndex = y*emuScreenWidth+x;
+					var middleLeft = y*emuScreenWidth+x-1;
+					var middleRight = y*emuScreenWidth+x+1;
+					
+					var topLeft = (y-1)*emuScreenWidth + x - 1;
+					var topMiddle = (y-1)*emuScreenWidth + x;
+					var topRight = (y-1)*emuScreenWidth + x + 1;
+										
+					var bottomLeft = (y+1)*emuScreenWidth + x - 1;
+					var bottomMiddle = (y+1)*emuScreenWidth + x;
+					var bottomRight = (y+1)*emuScreenWidth + x + 1;
+					
+					var dividor = 1;
+					var color = attractionImage[myIndex];
+					
+					if(middleLeft>=0 && middleLeft<al)
+					{
+						color += attractionImage[middleLeft];
+						dividor += 1;
+					}
+					if(middleRight>=0 && middleRight<al)
+					{
+						color += attractionImage[middleRight];
+						dividor += 1;
+					}
+					
+					if(topLeft>=0 && topLeft<al)
+					{
+						color += attractionImage[topLeft];
+						dividor += 1;
+					}
+					if(topMiddle>=0 && topMiddle<al)
+					{
+						color += attractionImage[topMiddle];
+						dividor += 1;
+					}
+					if(topRight>=0 && topRight<al)
+					{
+						color += attractionImage[topRight];
+						dividor += 1;
+					}
+
+					if(bottomLeft>=0 && bottomLeft<al)
+					{
+						color += attractionImage[bottomLeft];
+						dividor += 1;
+					}
+					if(bottomMiddle>=0 && bottomMiddle<al)
+					{
+						color += attractionImage[bottomMiddle];
+						dividor += 1;
+					}
+					if(bottomRight>=0 && bottomRight<al)
+					{
+						color += attractionImage[bottomRight];
+						dividor += 1;
+					}
+					
+					if(color>0)
+						color = parseInt(color/dividor);
+					attractionImage[myIndex]= color & 0xFF;
+				}
+			}
+		}
+		
+		// recolor the image
+		//min = 10000000;
+		//max = -1;
+		/*for(var z = 0; z < al; z++)
+		{
+			var c = attractionImage[z];
+			if(min>c)
+				min = c;
+			if(max<c)
+				max = c;
+			attractionImage[z] = RGB(c,c,c);
+		}*/
+		//console.log("Plasma Max: "+max);
+		//console.log("Plasma Min: "+min);
 	}
 	
 	// update the attraction image.
 	this.updateAttractionImage = function()
 	{
-		if(attractionImage==null)
+		if(attractionImage==null || attractionPalette==null)
 			return;
 		
-		this.createAttractionImage();
+		//this.createAttractionImage();
+		// cycle palette colors
+		// warning: FROM 1, not from 0!!
+		var first = attractionPalette[0];
+		for(var pz=1;pz<attractionPalette.length;pz++)
+		{
+			attractionPalette[pz-1] = attractionPalette[pz];
+		}
+		attractionPalette[attractionPalette.length-1]=first;
 		
-		this.arrayToScreen(attractionImage);
+		this.arrayFromPaletteToScreen(attractionImage, attractionPalette);
+		//this.arrayToScreen(attractionImage);
 	}
 
 	// ENDOF NEW FOR 2.1_3
@@ -291,4 +429,13 @@ EmuGraphicsAdapter.createOriginalPixelTex = function()
 	EmuGraphicsAdapter.originalPixelTex = gpix.generateCanvasTexture();
 	console.log("EmuGraphicsAdapter: CREATED original pixel texture.");
 }
+
+// NEW FOR 2.1_3
+
+// return the combined color (0xRRGGBB)
+var RGB = function(red, green, blue) {return ((red << 16) & 0xFF0000) | ((green<<8) & 0x00FF00) | (blue & 0x0000FF);}
+var RED = function(color) {return (color>>16) & 0x0000FF;}
+var GREEN = function(color) {return (color>>8) & 0x0000FF;}
+var BLUE = function(color) {return color & 0x0000FF;}
+// ENDOF NEW
 
