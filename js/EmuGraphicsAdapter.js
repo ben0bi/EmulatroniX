@@ -245,49 +245,51 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 		// attraction image colors go now from 0 to 255,
 		// first we create a palette for it.
 		attractionPalette = [];
-		for(var p = 0;p < 0xFF; p++)
+		for(var q = 0;q<8;q++)
 		{
 			var red = 0;
 			var green = 0;
 			var blue = 0;
-			
-			if(p<64)
+			for(var p=0;p<32;p++)
 			{
-				red = p*4; // red up from black
-				blue = (63-p)*4;
-				//green = 0xFF; // green stays
-			}
-			
-			if(p>=64 && p<128)
-			{
-				red = 0xFF; 		// red stays
-				green = (p-64) * 4; // green up
+				red = p*8; 		// red up
+				blue = (31-p)*8; // blue down
+				green = 0;
+				attractionPalette.push(RGB(red,green,blue));
 			}
 
-			if(p>=128 && p<192)
+			for(var p=0;p<32;p++)
 			{
-				// red down
-				red = (64-(p-127)) * 4;
-				green = 0xFF; // green stays
-			}
-			
-			if(p>=192)
-			{
-				// blue up
-				blue = (p-191)*4;
-				green=(64-(p-191))*4; // green down
+				red = 0xFF; 	// red stays
+				green = p * 8;  // green up
+				blue = 0;
+				attractionPalette.push(RGB(red,green,blue));
 			}
 
-			attractionPalette.push(RGB(red,green,blue));
+			for(var p=0;p<32;p++)
+			{
+				red = (31-p)*8; // red down
+				blue = 0;
+				green = 0xFF; 	// green stays
+				attractionPalette.push(RGB(red,green,blue));
+			}
+
+			for(var p=0;p<32;p++)
+			{
+				red = 0;
+				blue = p *8;		// blue up
+				green = (31-p)*8; 	// green down
+				attractionPalette.push(RGB(red,green,blue));
+			}
 		}
-
+		
 		attractionImage = this.screenToArray();
 		var al = attractionImage.length;
 		
 		// just generate a random noise image
 		for(var z = 0; z < al; z++)
 		{
-			var color = parseInt(Math.random()*0x0000FF);
+			var color = parseInt(Math.random()*1024);
 			if(color < 150)
 				color = 0;
 			attractionImage[z] = color;
@@ -360,7 +362,9 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 					
 					if(color>0)
 						color = parseInt(color/dividor);
-					attractionImage[myIndex]= color & 0xFF;
+					if(color>1023)
+						color=1023;
+					attractionImage[myIndex]= color;
 				}
 			}
 		}
