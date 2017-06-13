@@ -16,14 +16,19 @@
 	
 	<!-- NEW for part 2.1 -->
 	<script src="js/EmuGraphicsAdapter.js"></script>
+
+	<!-- NEW for DEMO 1: Plasma -->
+	<script src="js/Plasma.js"></script>
 	
 	<script>
 		var emuGraphics = null;
+		var plasmaEffect = null;
+
 		function mainLoop() 
 		{
-			if(emuGraphics==null)
+			if(emuGraphics==null || plasmaEffect==null)
 				return;
-			emuGraphics.updateAttractionImage();
+			plasmaEffect.update();
 			emuGraphics.switchBuffers();
 		}
 				
@@ -38,7 +43,8 @@
 			var emuWidth = 100;
 			var emuHeight = 100;
 			emuGraphics = new EmuGraphicsAdapter(emuWidth, emuHeight,0x000000,0x3333AA);
-			emuGraphics.createAttractionImage();
+
+			plasmaEffect = new Plasma(emuGraphics);
 			
 			console.log("Ready.");
 		});

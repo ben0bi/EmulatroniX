@@ -13,6 +13,11 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 	var emuScreenWidth = 40;
 	var emuScreenHeight = 40;
 
+	// NEW FOR Part 2.1_3
+	this.screenWidth = function() {return emuScreenWidth;}
+	this.screenHeight = function() {return emuScreenHeight;}
+	// ENDOF NEW
+
 	// drawing width and height is emu width and height * 2
 	var emuDrawWidth = emuScreenWidth * 2;
 	var emuDrawHeight = emuScreenHeight * 2;
@@ -220,8 +225,7 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 		{
 			this.pixelIndex(z, emuBackgroundColor);
 			var a = arr[z] % paletteSize;	// modulo the value through paletteSize
-//			if(a >= 0 && a < paletteArray.length)
-				this.pixelIndex(z,paletteArray[a]);
+			this.pixelIndex(z,paletteArray[a]);
 		}
 		
 	}
@@ -236,220 +240,6 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 			arr.push(screenArray[doubleBufferIndex][z]);
 		}
 		return arr;
-	}
-
-	// create an attraction image.
-	var attractionImage = null;
-	var attractionPalette = null;
-	var attractionPaletteMultiplier = 4;
-	this.createAttractionImage = function()
-	{
-		// attraction image has a palette with 256 entries, each 32 entries another color raises/lowers.
-		// first we create the palette.
-		attractionPalette = [];
-		// we need just one palette and repeat it with the height map values (index%paletteSize).
-		var red = 0;
-		var green = 0;
-		var blue = 0;
-
-		// 0-31 + black to red
-		for(var p=0;p<32;p++)
-		{
-			red = p*8; 		// red up
-			blue = 0;
-			green = 0;
-			attractionPalette.push(RGB(red,green,blue));
-		}
-
-		// 32-63 + red to yellow
-		for(var p=0;p<32;p++)
-		{
-			red = 0xFF; 	// red stays
-			green = p * 8;  // green up
-			blue = 0;
-			attractionPalette.push(RGB(red,green,blue));
-		}
-
-		// 64-95 + yellow to green
-		for(var p=0;p<32;p++)
-		{
-			red = (31-p)*8; // red down
-			blue = 0;
-			green = 0xFF; 	// green stays
-			attractionPalette.push(RGB(red,green,blue));
-		}
-
-		// 96-127 + green to turkis
-		for(var p=0;p<32;p++)
-		{
-			red = 0;
-			blue = p * 8;		// blue up
-			green = 0xFF;		// green stays
-			attractionPalette.push(RGB(red,green,blue));
-		}
-			
-		// 128-159 + turkis to blue
-		for(var p=0;p<32;p++)
-		{
-			red = 0;
-			blue = 0xFF;		// blue stays
-			green = (31-p)*8;	// green down
-			attractionPalette.push(RGB(red,green,blue));
-		}
-
-		// 160-191 + blue to magenta
-		for(var p=0;p<32;p++)
-		{
-			red = p * 8;		// red up
-			blue = 0xFF;		// blue stays
-			green=0;
-			attractionPalette.push(RGB(red,green,blue));
-		}
-
-		// 192-224 + magenta to red
-		for(var p=0;p<32;p++)
-		{
-			red = 0xFF;				// red stays
-			blue = (31-p)*8;		// blue down
-			green = 0; 
-			attractionPalette.push(RGB(red,green,blue));
-		}
-			
-		// 226-255 + red to black
-		for(var p=0;p<32;p++)
-		{
-			red = (31-p)*8;		// red down 
-			blue = 0;
-			green = 0;		 
-			attractionPalette.push(RGB(red,green,blue));
-		}
-
-		// now generate the image itself.
-		attractionImage = this.screenToArray();	// get screen image
-		var al = attractionImage.length;		// length of screen image array.
-		var palSize = attractionPalette.length;
-		var maxValue = (palSize * attractionPaletteMultiplier)-1;
-		
-		// just generate a random noise image
-		for(var z = 0; z < al; z++)
-		{
-			var color = parseInt(Math.random()*maxValue);
-			
-			// little more black in the image.
-			if(color < maxValue * 0.25)
-				color = 0;
-			
-			attractionImage[z] = color;
-		}
-		
-		// refine the image, create "height map"
-		for(var steps =0;steps < 4;steps++)
-		{
-			for(var y=0;y<emuScreenHeight;y++)
-			{
-				for(var x=0;x<emuScreenWidth;x++)
-				{
-					var myIndex = y*emuScreenWidth+x;
-					var middleLeft = y*emuScreenWidth+x-1;
-					var middleRight = y*emuScreenWidth+x+1;
-					
-					var topLeft = (y-1)*emuScreenWidth + x - 1;
-					var topMiddle = (y-1)*emuScreenWidth + x;
-					var topRight = (y-1)*emuScreenWidth + x + 1;
-										
-					var bottomLeft = (y+1)*emuScreenWidth + x - 1;
-					var bottomMiddle = (y+1)*emuScreenWidth + x;
-					var bottomRight = (y+1)*emuScreenWidth + x + 1;
-					
-					var dividor = 1;
-					var color = attractionImage[myIndex];
-					
-					if(middleLeft>=0 && middleLeft<al)
-					{
-						color += attractionImage[middleLeft];
-						dividor += 1;
-					}
-					if(middleRight>=0 && middleRight<al)
-					{
-						color += attractionImage[middleRight];
-						dividor += 1;
-					}
-					
-					if(topLeft>=0 && topLeft<al)
-					{
-						color += attractionImage[topLeft];
-						dividor += 1;
-					}
-					if(topMiddle>=0 && topMiddle<al)
-					{
-						color += attractionImage[topMiddle];
-						dividor += 1;
-					}
-					if(topRight>=0 && topRight<al)
-					{
-						color += attractionImage[topRight];
-						dividor += 1;
-					}
-
-					if(bottomLeft>=0 && bottomLeft<al)
-					{
-						color += attractionImage[bottomLeft];
-						dividor += 1;
-					}
-					if(bottomMiddle>=0 && bottomMiddle<al)
-					{
-						color += attractionImage[bottomMiddle];
-						dividor += 1;
-					}
-					if(bottomRight>=0 && bottomRight<al)
-					{
-						color += attractionImage[bottomRight];
-						dividor += 1;
-					}
-					
-					if(color>0)
-						color = parseInt(color/dividor);
-					if(color>maxValue)
-						color=maxValue;
-					attractionImage[myIndex] = color;
-				}
-			}
-		}
-		
-		// recolor the image
-		//min = 10000000;
-		//max = -1;
-		/*for(var z = 0; z < al; z++)
-		{
-			var c = attractionImage[z];
-			if(min>c)
-				min = c;
-			if(max<c)
-				max = c;
-			attractionImage[z] = RGB(c,c,c);
-		}*/
-		//console.log("Plasma Max: "+max);
-		//console.log("Plasma Min: "+min);
-	}
-	
-	// update the attraction image.
-	this.updateAttractionImage = function()
-	{
-		if(attractionImage==null || attractionPalette==null)
-			return;
-		
-		//this.createAttractionImage();
-		// cycle palette colors
-		// warning: FROM 1, not from 0!!
-		var first = attractionPalette[0];
-		for(var pz=1;pz<attractionPalette.length;pz++)
-		{
-			attractionPalette[pz-1] = attractionPalette[pz];
-		}
-		attractionPalette[attractionPalette.length-1]=first;
-		
-		this.arrayFromPaletteToScreen(attractionImage, attractionPalette);
-		//this.arrayToScreen(attractionImage);
 	}
 
 	// ENDOF NEW FOR 2.1_3
