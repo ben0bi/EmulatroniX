@@ -14,6 +14,7 @@ var Plasma = function(emuGraphicsAdapter)
 		if(GFX==null)
 		{
 			console.log("Plasma Error: No EmuGraphicsAdapter given!");
+			return;
 		}
 
 		// plasma image has a palette with 256 entries, each 32 entries another color raises/lowers.
@@ -23,75 +24,76 @@ var Plasma = function(emuGraphicsAdapter)
 		var red = 0;
 		var green = 0;
 		var blue = 0;
+		var p = 0;
 
-		// 0-31 + black to red
-		for(var p=0;p<32;p++)
+		// 0-31 + red to yellow
+		for(p=0;p<32;p++)
 		{
-			red = p*8; 		// red up
-			blue = 0;
-			green = 0;
-			plasmaPalette.push(RGB(red,green,blue));
-		}
-
-		// 32-63 + red to yellow
-		for(var p=0;p<32;p++)
-		{
-			red = 0xFF; 	// red stays
-			green = p * 8;  // green up
+			red = 0xFF;
+			green = p * 8;
 			blue = 0;
 			plasmaPalette.push(RGB(red,green,blue));
 		}
 
-		// 64-95 + yellow to green
-		for(var p=0;p<32;p++)
+		// 32-63 + yellow to white
+		for(p=0;p<32;p++)
 		{
-			red = (31-p)*8; // red down
-			blue = 0;
-			green = 0xFF; 	// green stays
+			red = 0xFF;
+			green = 0xFF;
+			blue = p * 8;
 			plasmaPalette.push(RGB(red,green,blue));
 		}
 
-		// 96-127 + green to turkis
-		for(var p=0;p<32;p++)
+		// 64-95 + white to turkis
+		for(p=0;p<32;p++)
+		{
+			red = (31-p)*8;
+			blue = 0xFF;
+			green = 0xFF;
+			plasmaPalette.push(RGB(red,green,blue));
+		}
+
+		// 96-127 + turkis to green
+		for(p=0;p<32;p++)
 		{
 			red = 0;
-			blue = p * 8;		// blue up
-			green = 0xFF;		// green stays
+			blue = (31 - p) * 8;
+			green = 0xFF;
 			plasmaPalette.push(RGB(red,green,blue));
 		}
 			
-		// 128-159 + turkis to blue
-		for(var p=0;p<32;p++)
+		// 128-159 + green to black
+		for(p=0;p<32;p++)
 		{
 			red = 0;
-			blue = 0xFF;		// blue stays
-			green = (31-p)*8;	// green down
+			blue = 0;
+			green = (31-p)*8;
 			plasmaPalette.push(RGB(red,green,blue));
 		}
 
-		// 160-191 + blue to magenta
-		for(var p=0;p<32;p++)
+		// 160-191 + black to blue
+		for(p=0;p<32;p++)
 		{
-			red = p * 8;		// red up
-			blue = 0xFF;		// blue stays
+			red = 0;
+			blue = p * 8;
 			green=0;
 			plasmaPalette.push(RGB(red,green,blue));
 		}
 
-		// 192-224 + magenta to red
-		for(var p=0;p<32;p++)
+		// 192-223 + blue to magenta
+		for(p=0;p<32;p++)
 		{
-			red = 0xFF;		// red stays
-			blue = (31-p)*8;	// blue down
+			red = p * 8;
+			blue = 0xFF;
 			green = 0; 
 			plasmaPalette.push(RGB(red,green,blue));
 		}
 			
-		// 226-255 + red to black
-		for(var p=0;p<32;p++)
+		// 224-255 + magenta to red
+		for(p=0;p<32;p++)
 		{
-			red = (31-p)*8;		// red down 
-			blue = 0;
+			red = 0xFF;
+			blue = (31 - p) * 8;
 			green = 0;		 
 			plasmaPalette.push(RGB(red,green,blue));
 		}
