@@ -7,7 +7,7 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 	var emuBackgroundColor = 0x000000;	// the background color of the emulator itself.
 	this.getBackgroundColor = function() {return emuBackgroundColor;}
 
-	var emuBorderWidth = 10; 		// better cover more than less space.
+	var emuBorderWidth = 10; 	// better cover more than less space.
 
 	// width and height of the emulator screen.
 	var emuScreenWidth = 40;
@@ -23,8 +23,8 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 	var emuDrawHeight = emuScreenHeight * 2;
 
 	// double buffering.
-	var doubleBufferIndex = 0;				// 0 or 1.
-	var screenArray = [];					// this array holds 2 screen arrays for double buffering.
+	var doubleBufferIndex = 0;		// 0 or 1.
+	var screenArray = [];			// this array holds 2 screen arrays for double buffering.
 
 	this.initialize = function(width, height,bgColor,borderColor)
 	{
@@ -115,6 +115,13 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 		bordersprite2.y = -emuBorderWidth;
 		container1.addChild(bordersprite1);
 		container2.addChild(bordersprite2);
+		
+		// NEW FOR Anpassungen: Container Anker
+/*		container1.pivot.x = -0.5;
+		container1.pivot.y = -0.5;
+		container2.pivot.x = -0.5;
+		container2.pivot.y = -0.5;*/
+		// ENDOF NEW FOR Anpassungen
 
 		// add the containers and the screen arrays to the buffer arrays.
 		EmuGraphicsAdapter.containers = [];
@@ -130,8 +137,8 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 		PIXIStage.addChild(container1);
 		PIXIStage.addChild(container2);
 
-		// center the containers.
-		this.reposition();
+		// center and scale the containers.
+		this.resize();
 
 		// hide one of the screens.
 		this.switchBuffers();
@@ -154,7 +161,53 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 		EmuGraphicsAdapter.containers[oldBuf].visible = true;	// show the old buffer.
 	}
 
-	// resize the screen.
+// NEW FOR Anpassungen: Bildschirmgrösse.
+	this.resize=function(resizeParameter)
+	{
+		// nothing = 0 = -1 = fit to screen.
+		if(!resizeParameter)
+			resizeParameter = -1;
+		
+		if(resizeParameter==0)
+			resizeParameter = -1;
+		
+		// fit to original size
+		var resizeMultiplier = Math.abs(resizeParameter);
+		
+		// fit to screen
+		if(resizeParameter < 0)
+		{
+			// get the screen size to fit to screen.
+			var realScreenWidth = RUNPIXI.getScreenSize().w;
+			var realScreenHeight = RUNPIXI.getScreenSize().h;
+			var mul = 1;
+			// get the multipliers. We need the DRAW width and height.
+			// first try with x multiplication.
+			if(emuDrawWidth>0 && realScreenWidth>0)
+				mul = realScreenWidth/emuDrawWidth;
+			
+			// it does not fit in height, try it with y multiplication.
+			if(emuDrawHeight * mul > realScreenHeight && emuDrawHeight > 0 && realScreenHeight > 0)
+				mul = realScreenHeight/emuDrawHeight;
+			
+			// fitted to screen, now multiply with desired resolution.
+			resizeMultiplier = resizeMultiplier * mul;
+		}
+		
+		// apply the multiplier
+		for(var i=0;i<EmuGraphicsAdapter.containers.length;i++)
+		{
+			var container = EmuGraphicsAdapter.containers[i];
+			container.scale.x = resizeMultiplier;
+			container.scale.y = resizeMultiplier;
+		}
+		
+		// finally center the screen again.
+		this.reposition();
+	}
+// ENDOF NEW FOR Anpassungen.
+	
+	// reposition the screen.
 	this.reposition = function()
 	{
 		// get the screen size to center the sprite.
@@ -164,8 +217,8 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 		for(var i=0;i<EmuGraphicsAdapter.containers.length;i++)
 		{
 			var container = EmuGraphicsAdapter.containers[i];
-			container.x = realScreenWidth*0.5-container.width*0.5;
-			container.y = realScreenHeight*0.5-container.height*0.5;
+			container.pivot.x = -realScreenWidth*0.5+container.width*0.5;
+			container.pivot.y = -realScreenHeight*0.5+container.height*0.5; //-container.height*0.5;
 		}
 	}
 
