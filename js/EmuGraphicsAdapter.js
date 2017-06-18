@@ -117,10 +117,10 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 		container2.addChild(bordersprite2);
 		
 		// NEW FOR Anpassungen: Container Anker
-/*		container1.pivot.x = -0.5;
-		container1.pivot.y = -0.5;
-		container2.pivot.x = -0.5;
-		container2.pivot.y = -0.5;*/
+		container1.pivot.x = -emuBorderWidth;
+		container1.pivot.y = -emuBorderWidth;
+		container2.pivot.x = -emuBorderWidth;
+		container2.pivot.y = -emuBorderWidth;
 		// ENDOF NEW FOR Anpassungen
 
 		// add the containers and the screen arrays to the buffer arrays.
@@ -180,18 +180,26 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 			// get the screen size to fit to screen.
 			var realScreenWidth = RUNPIXI.getScreenSize().w;
 			var realScreenHeight = RUNPIXI.getScreenSize().h;
+			
+			// include the borders.
+			var emuWidth = emuDrawWidth + (emuBorderWidth *2);
+			var emuHeight = emuDrawHeight + (emuBorderWidth *2);
+			
 			var mul = 1;
 			// get the multipliers. We need the DRAW width and height.
 			// first try with x multiplication.
-			if(emuDrawWidth>0 && realScreenWidth>0)
-				mul = realScreenWidth/emuDrawWidth;
+			if(emuWidth>0 && realScreenWidth>0)
+				mul = realScreenWidth/emuWidth;
 			
 			// it does not fit in height, try it with y multiplication.
-			if(emuDrawHeight * mul > realScreenHeight && emuDrawHeight > 0 && realScreenHeight > 0)
-				mul = realScreenHeight/emuDrawHeight;
+			if(emuHeight * mul > realScreenHeight && emuHeight > 0 && realScreenHeight > 0)
+				mul = realScreenHeight/emuHeight;
 			
 			// fitted to screen, now multiply with desired resolution.
 			resizeMultiplier = resizeMultiplier * mul;
+		}else{
+			// screen is double the size of original so take the half of the value.
+			resizeMultiplier = resizeMultiplier * 0.5;
 		}
 		
 		// apply the multiplier
@@ -217,8 +225,11 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 		for(var i=0;i<EmuGraphicsAdapter.containers.length;i++)
 		{
 			var container = EmuGraphicsAdapter.containers[i];
-			container.pivot.x = -realScreenWidth*0.5+container.width*0.5;
-			container.pivot.y = -realScreenHeight*0.5+container.height*0.5; //-container.height*0.5;
+			container.x = realScreenWidth*0.5-container.width*0.5;
+			container.y = realScreenHeight*0.5-container.height*0.5;
+			console.log("*** EmuGraphicsAdapter Resize ***")
+			console.log(i+"_X: Real: "+realScreenWidth+" / Draw: "+emuDrawWidth+" / Cont: "+container.width+ " / Pos: "+container.x);
+			console.log(i+"_Y: Real: "+realScreenHeight+" / Draw: "+emuDrawHeight+" / Cont: "+container.height+ " / Pos: "+container.y);
 		}
 	}
 
