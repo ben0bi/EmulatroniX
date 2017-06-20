@@ -31,18 +31,18 @@
 			plasmaEffect.update();
 			emuGraphics.switchBuffers();
 		}
-		
-		// NEW FOR Anpassungen: Screengrösse.
-		// Resize the emulator screen if the window resizes.
-		RUNPIXI.instance.setResizeFunction(function() 
-		{
-			if(emuGraphics!=null)
-				emuGraphics.resize();
-		});
-		// ENDOF NEW FOR Anpassungen.
-				
+						
 		$(document).ready(function() 
 		{
+			// NEW FOR Anpassungen: Screengrösse.
+			// Resize the emulator screen if the window resizes.
+			RUNPIXI.instance.setResizeFunction(function() 
+			{
+				if(emuGraphics!=null)
+					emuGraphics.resize(emuGraphics.getResizeParameter());
+			});
+			// ENDOF NEW FOR Anpassungen.
+
 			var browserBackgroundColor = 0x111133;
 			RUNPIXI.initialize('pixiscreen', mainLoop, "transparent"); //browserBackgroundColor);
 			

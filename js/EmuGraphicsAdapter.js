@@ -25,7 +25,12 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 	// double buffering.
 	var doubleBufferIndex = 0;		// 0 or 1.
 	var screenArray = [];			// this array holds 2 screen arrays for double buffering.
-
+	
+	// NEW FOR Anpassungen 
+	var g_resizeParameter = 0;		// fit to screen.
+	this.getResizeParameter = function() {return g_resizeParameter;}
+	// ENDOF NEW
+	
 	this.initialize = function(width, height,bgColor,borderColor)
 	{
 		// get and set some values.
@@ -168,11 +173,27 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 		if(!resizeParameter)
 			resizeParameter = -1;
 		
-		if(resizeParameter==0)
-			resizeParameter = -1;
-		
-		// fit to original size
+				// fit to original size
 		var resizeMultiplier = Math.abs(resizeParameter);
+		var withBorder=1;
+		
+		// fit to screen
+		if(resizeParameter==0 || resizeParameter=='auto' || resizeParameter==-1)
+		{
+			resizeParameter = -1;
+			resizeMultiplier = 1;
+		}
+		
+		// fit to screen without borders.
+		if(resizeParameter == 'noborder' || resizeParameter==-2)
+		{
+			resizeMultiplier=1;
+			resizeParameter = -2;
+			withBorder=0;
+		}
+		
+		// set the new resize parameter.
+		g_resizeParameter=resizeParameter;
 		
 		// fit to screen
 		if(resizeParameter < 0)
@@ -182,8 +203,8 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 			var realScreenHeight = RUNPIXI.getScreenSize().h;
 			
 			// include the borders.
-			var emuWidth = emuDrawWidth + (emuBorderWidth *2);
-			var emuHeight = emuDrawHeight + (emuBorderWidth *2);
+			var emuWidth = emuDrawWidth + withBorder*(emuBorderWidth *2);
+			var emuHeight = emuDrawHeight + withBorder*(emuBorderWidth *2);
 			
 			var mul = 1;
 			// get the multipliers. We need the DRAW width and height.
@@ -209,7 +230,7 @@ var EmuGraphicsAdapter = function(newwidth, newheight, bgcolor, bordercolor)
 			container.scale.x = resizeMultiplier;
 			container.scale.y = resizeMultiplier;
 		}
-		
+				
 		// finally center the screen again.
 		this.reposition();
 	}
