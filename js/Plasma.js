@@ -100,7 +100,7 @@ var Plasma = function(emuGraphicsAdapter)
 
 		// now generate the image itself.
 		plasmaImage = GFX.screenToArray();	// get screen image
-		var arraySize = plasmaImage.length;		// length of screen image array.
+		var arraySize = plasmaImage.length;	// length of screen image array.
 		var palSize = plasmaPalette.length;
 		var maxValue = (palSize * plasmaPaletteMultiplier)-1;
 		
@@ -173,7 +173,6 @@ var Plasma = function(emuGraphicsAdapter)
 		plasmaPalette[plasmaPalette.length-1]=first;
 		
 		GFX.arrayFromPaletteToScreen(plasmaImage, plasmaPalette);
-		//this.arrayToScreen(plasmaImage);
 	}
 	
 	this.createPlasmaImage();
