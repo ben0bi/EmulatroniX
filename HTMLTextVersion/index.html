@@ -5,10 +5,33 @@
 	<title>Emulator TextGraphic</title>
 	
 	<style>
+		body, html
+		{
+			height: 100%;
+			width: 100%;
+			padding: 0;
+			margin: 0;
+		}
+		
 		#canvas 
 		{
-			font-size: 4pt;
+			position: relative;
+			width: 70%;
+			height: 70%;
+			top: 15%;
+			min-height: 70%;
+			margin: auto auto;
+			border-radius: 3px;
+			border: 2px solid #3333AA;
+			overflow: hidden;
 		}
+		
+		#mapcontent
+		{
+			position: absolute;
+			font-size: 20pt;
+		}
+		
 		#blocker
 		{
 			position: absolute;
@@ -25,7 +48,6 @@
 
 <body>
 	<div id="canvas"></div>
-	<div id="blocker"></div>
 <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
 
 <script>
@@ -36,9 +58,11 @@ var GREEN = function(color) {return (color>>8) & 0x0000FF;}
 var BLUE = function(color) {return color & 0x0000FF;}
 var HEXT = function(value) {return '#'+value.toString(16);}; // return hex string of a value with preceding #.
 
-var c_Screen = function(xsize, ysize)
+var c_Screen = function(xsize, ysize, canvasDivID)
 {
-	var blockChar='&#9600';
+
+	var blockChar='#';
+
 	if(xsize<=0)
 		xsize=1;
 	if(ysize<=0)
@@ -47,11 +71,19 @@ var c_Screen = function(xsize, ysize)
 	// ysize must be dividable by 2 because of the block chars.	
 	if(ysize%2==1)
 		ysize+=1;
-		
+
+	var m_wrapper = $('#'+canvasDivID);
+	m_wrapper.html('<div id="mapcontent"></div>');
+	
+	// the moveable map window.
+	var m_content = $('#mapcontent');
+	
+// width and height of the screen.		
 	var m_width = xsize;
 	var m_height = ysize;
+// array with the screen colours.
 	var m_screenArray = new Array();
-	
+
 	// create a randomly coloured screen.
 	this.randomScreen = function()
 	{
@@ -64,7 +96,28 @@ var c_Screen = function(xsize, ysize)
 	// initialize with a random screen.
 	this.randomScreen();
 	
-	this.setPixel = function(x,y,color) {m_screenArray[x*y+x]=color;}
+	this.setPixel = function(x,y,color) {m_screenArray[m_width*y+x]=color;}
+	
+	// move the screen some way.
+	this.move =function(x,y)
+	{
+		var myx = parseInt(m_content.css('left'));
+		var myy = parseInt(m_content.css('top'));
+		myx+=x;
+		myy+=y;
+		
+		// constrains
+		if(myx>0)
+			myx=0;
+		if(myy>0)
+			myy=0;
+			
+		if(myx < m_wrapper.width()-m_content.width())
+			myx = m_wrapper.width()-m_content.width();
+		
+		m_content.css('left', myx+'px');
+		m_content.css('top', myy+'px');
+	}
 	
 	// build the html text from the screen array.
 	this.buildText=function()
@@ -74,32 +127,97 @@ var c_Screen = function(xsize, ysize)
 		{
 			for(var x=0;x<m_width;x++)
 			{
-				var color=HEXT(m_screenArray[x*y+x]);
-				var subcolor=HEXT(m_screenArray[x*(y+1)+x]);
+				var color=HEXT(m_screenArray[m_width*y+x]);
+				var subcolor=HEXT(m_screenArray[m_width*(y+1)+x]);
 				txt+='<span style="color:'+color+'; background-color:'+subcolor+';">'+blockChar+'</span>';
 			}
 			txt+='<br />';
 		}
 		txt+='</nobr>';
+		m_content.html(txt);
 		return txt;
 	}
 }
 
-var done=false;
-var scr = new c_Screen(160,160);
+function init()
+{
+	g_scr.randomScreen();
+	var txt = g_scr.buildText();
+	//window.setTimeout(loop,20);
+	loop();
+}
+
+var moveXFactor = 10;
+var moveYFactor = 10;
 
 function loop()
 {
-	scr.randomScreen();
-	var txt = scr.buildText();
-	$('#canvas').html(txt);
-	window.setTimeout(loop,20);
+	if(g_Key_Left && !g_Key_Right)
+		g_scr.move(moveXFactor,0);
+	if(g_Key_Right && !g_Key_Left)
+		g_scr.move(-moveXFactor,0);
+	if(g_Key_Up && !g_Key_Down)
+		g_scr.move(0,moveYFactor);
+	if(g_Key_Down && !g_Key_Up)
+		g_scr.move(0,-moveYFactor);
+		
+	window.setTimeout(loop,50);
 }
+
+// the global keys.
+var g_Key_Left = false;
+var g_Key_Right = false;
+var g_Key_Up = false;
+var g_Key_Down = false;
+
+// the screen.
+var g_scr = null;
 
 $(document).ready(function()
 {
-	$('body').keydown(function(e){done=true;});
-	loop();
+	g_scr=new c_Screen(80,100, 'canvas');
+
+	$('body').keydown(function(e)
+	{
+		switch(e.which) 
+		{
+			case 37: // left
+				g_Key_Left =true;
+				break;
+			case 38: // up
+				g_Key_Up = true;
+				break;
+			case 39: // right
+				g_Key_Right=true;
+				break;
+			case 40: // down
+				g_Key_Down = true;
+				break;
+			default: return; // exit this handler for other keys
+		}
+	});
+	$('body').keyup(function(e)
+	{
+		switch(e.which) 
+		{
+			case 37: // left
+				g_Key_Left =false;
+				break;
+			case 38: // up
+				g_Key_Up = false;
+				break;
+			case 39: // right
+				g_Key_Right=false;
+				break;
+			case 40: // down
+				g_Key_Down = false;
+				break;
+			default: return; // exit this handler for other keys
+		}
+		e.preventDefault();
+	});
+	
+	init();
 });
 </script>
 	
