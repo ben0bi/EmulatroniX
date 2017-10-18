@@ -10,4 +10,7 @@ http://benedictinerklosterbruder.blogspot.ch/2017/05/diy-emulator-teil-2-basisge
 http://benedictinerklosterbruder.blogspot.ch/2017/05/diy-emulator-teil-21-der-emulator.html  
 http://benedictinerklosterbruder.blogspot.ch/2017/06/diy-emulator-teil-212-der-rest.html  
 
+HTMLVersion:
+http://benedictinerklosterbruder.blogspot.ch/2017/10/diyemulator-textgraphic-setup.html
+
 Please be patient.

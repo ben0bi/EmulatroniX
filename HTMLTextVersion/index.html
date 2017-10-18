@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8" />
+	<title>Emulator TextGraphic</title>
+	
+	<style>
+		#canvas 
+		{
+			font-size: 4pt;
+		}
+		#blocker
+		{
+			position: absolute;
+			top: 0px;
+			left: 0px;
+			background-color: rgba(1,1,1,0.01);
+			width: 100%;
+			height: 100%;
+			z-index: 10;
+		}
+	</style>
+	
+</head>
+
+<body>
+	<div id="canvas"></div>
+	<div id="blocker"></div>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+
+<script>
+
+var RGB = function(red, green, blue) {return ((red << 16) & 0xFF0000) | ((green<<8) & 0x00FF00) | (blue & 0x0000FF);}
+var RED = function(color) {return (color>>16) & 0x0000FF;}
+var GREEN = function(color) {return (color>>8) & 0x0000FF;}
+var BLUE = function(color) {return color & 0x0000FF;}
+var HEXT = function(value) {return '#'+value.toString(16);}; // return hex string of a value with preceding #.
+
+var c_Screen = function(xsize, ysize)
+{
+	var blockChar='&#9600';
+	if(xsize<=0)
+		xsize=1;
+	if(ysize<=0)
+		ysize=1;
+		
+	// ysize must be dividable by 2 because of the block chars.	
+	if(ysize%2==1)
+		ysize+=1;
+		
+	var m_width = xsize;
+	var m_height = ysize;
+	var m_screenArray = new Array();
+	
+	// create a randomly coloured screen.
+	this.randomScreen = function()
+	{
+		m_screenArray = new Array();
+		for(var i=0;i<m_width*m_height;i++)
+		{
+			m_screenArray.push(RGB(Math.random()*255, Math.random()*255, Math.random()*255));
+		}
+	}
+	// initialize with a random screen.
+	this.randomScreen();
+	
+	this.setPixel = function(x,y,color) {m_screenArray[x*y+x]=color;}
+	
+	// build the html text from the screen array.
+	this.buildText=function()
+	{
+		var txt='<nobr>';
+		for(var y=0;y<m_height;y+=2)
+		{
+			for(var x=0;x<m_width;x++)
+			{
+				var color=HEXT(m_screenArray[x*y+x]);
+				var subcolor=HEXT(m_screenArray[x*(y+1)+x]);
+				txt+='<span style="color:'+color+'; background-color:'+subcolor+';">'+blockChar+'</span>';
+			}
+			txt+='<br />';
+		}
+		txt+='</nobr>';
+		return txt;
+	}
+}
+
+var done=false;
+var scr = new c_Screen(160,160);
+
+function loop()
+{
+	scr.randomScreen();
+	var txt = scr.buildText();
+	$('#canvas').html(txt);
+	window.setTimeout(loop,20);
+}
+
+$(document).ready(function()
+{
+	$('body').keydown(function(e){done=true;});
+	loop();
+});
+</script>
+	
+</body>
+
+</html>
