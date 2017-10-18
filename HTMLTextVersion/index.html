@@ -11,6 +11,7 @@
 			width: 100%;
 			padding: 0;
 			margin: 0;
+			font-family: monospace;
 		}
 		
 		#canvas 
@@ -26,7 +27,7 @@
 			overflow: hidden;
 		}
 		
-		#mapcontent
+		.mapcontent
 		{
 			position: absolute;
 			font-size: 20pt;
@@ -58,31 +59,15 @@ var GREEN = function(color) {return (color>>8) & 0x0000FF;}
 var BLUE = function(color) {return color & 0x0000FF;}
 var HEXT = function(value) {return '#'+value.toString(16);}; // return hex string of a value with preceding #.
 
-var c_Screen = function(xsize, ysize, canvasDivID)
+// screenlayers are used by the screen class.
+var c_screenLayer = function(name,xsize,ysize)
 {
-
-	var blockChar='#';
-
-	if(xsize<=0)
-		xsize=1;
-	if(ysize<=0)
-		ysize=1;
-		
-	// ysize must be dividable by 2 because of the block chars.	
-	if(ysize%2==1)
-		ysize+=1;
-
-	var m_wrapper = $('#'+canvasDivID);
-	m_wrapper.html('<div id="mapcontent"></div>');
-	
-	// the moveable map window.
-	var m_content = $('#mapcontent');
-	
-// width and height of the screen.		
 	var m_width = xsize;
 	var m_height = ysize;
-// array with the screen colours.
+	var m_html = '';
+// array with the "pixel items".
 	var m_screenArray = new Array();
+	var m_layerName = name;
 
 	// create a randomly coloured screen.
 	this.randomScreen = function()
@@ -98,29 +83,8 @@ var c_Screen = function(xsize, ysize, canvasDivID)
 	
 	this.setPixel = function(x,y,color) {m_screenArray[m_width*y+x]=color;}
 	
-	// move the screen some way.
-	this.move =function(x,y)
-	{
-		var myx = parseInt(m_content.css('left'));
-		var myy = parseInt(m_content.css('top'));
-		myx+=x;
-		myy+=y;
-		
-		// constrains
-		if(myx>0)
-			myx=0;
-		if(myy>0)
-			myy=0;
-			
-		if(myx < m_wrapper.width()-m_content.width())
-			myx = m_wrapper.width()-m_content.width();
-		
-		m_content.css('left', myx+'px');
-		m_content.css('top', myy+'px');
-	}
-	
-	// build the html text from the screen array.
-	this.buildText=function()
+	// build the HTML text for this layer.
+	this.buildHTML = function(blockChar, transparent)
 	{
 		var txt='<nobr>';
 		for(var y=0;y<m_height;y+=2)
@@ -128,22 +92,128 @@ var c_Screen = function(xsize, ysize, canvasDivID)
 			for(var x=0;x<m_width;x++)
 			{
 				var color=HEXT(m_screenArray[m_width*y+x]);
-				var subcolor=HEXT(m_screenArray[m_width*(y+1)+x]);
-				txt+='<span style="color:'+color+'; background-color:'+subcolor+';">'+blockChar+'</span>';
+				var bgcolor = 'transparent';
+				if(!transparent)
+					bgcolor=HEXT(m_screenArray[m_width*(y+1)+x]);
+				txt+='<span style="color:'+color+'; background-color:'+bgcolor+';">'+blockChar+'</span>';
 			}
 			txt+='<br />';
 		}
 		txt+='</nobr>';
-		m_content.html(txt);
+		m_html=txt;
 		return txt;
 	}
+	
+	this.getHTML = function() {return m_html;}
+};
+
+// the screen class is here for the graphics.
+var c_Screen = function(xsize, ysize, canvasDivID)
+{
+	var houseChar = '&#9992;';
+	var blockChar='&#9617;';
+
+	if(xsize<=0)
+		xsize=1;
+	if(ysize<=0)
+		ysize=1;
+		
+	// ysize must be dividable by 2 because of the block chars.	
+	if(ysize%2==1)
+		ysize+=1;
+
+	// this div holds the whole map in it.	
+	var m_wrapper = $('#'+canvasDivID);
+	
+	// the moveable map window.
+	//var m_content = $('#mapcontent');
+	
+// width and height of the screen.		
+	var m_width = xsize;
+	var m_height = ysize;
+// array with all the layers. last one is on top.
+	var m_layers = new Array();
+	
+	var m_scrollX = 0;
+	var m_scrollY = 0;
+
+	// create the divs for all the layers and append them to the wrapper.
+	var createLayerDivHtml = function()
+	{
+		var html='';
+		for(var i=0;i<m_layers.length;i++)
+		{
+			html+='<div id="maplayer_'+i+'" class="mapcontent"></div>';
+		}
+		m_wrapper.html(html);
+	}
+	
+	// add a layer to the screen.
+	this.addLayer=function(name)
+	{
+		var l = new c_screenLayer(name,m_width, m_height);
+		m_layers.push(l);
+		createLayerDivHtml();
+	}
+	
+	// move the screen some way.
+	this.move =function(x,y)
+	{
+		m_scrollX+=x;
+		m_scrollY+=y;
+		
+		// constrains
+		if(m_scrollX>0)
+			m_scrollX=0;
+		if(m_scrollY>0)
+			m_scrollY=0;
+			
+		if(m_scrollX < m_wrapper.width()-$('#maplayer_0').width())
+			m_scrollX = m_wrapper.width()-$('#maplayer_0').width();
+		if(m_scrollY < m_wrapper.height()-$('#maplayer_0').height())
+			m_scrollY = m_wrapper.height()-$('#maplayer_0').height();
+
+
+		// first build up all the html.
+		for(var i=0;i<m_layers.length;i++)
+		{
+			$('#maplayer_'+i).css('left',m_scrollX);
+			$('#maplayer_'+i).css('top',m_scrollY);
+		}
+	}
+	
+	// create a frame. ;)
+	this.buildDisplay=function()
+	{
+		// first build up all the html.
+		var transparent = true;
+		for(var i=0;i<m_layers.length;i++)
+		{
+			// just build the text, "preload" it
+			if(i%2==1)
+				blockChar = houseChar;
+			
+			if(i==0)
+				transparent = false;
+				
+			m_layers[i].buildHTML(blockChar);
+		}
+		
+		// then switch the layers at once.
+		for(var i=0;i<m_layers.length;i++)
+		{
+			// just build the text, "preload" it
+			$('#maplayer_'+i).html(m_layers[i].getHTML());
+		}
+	}
+	
+	this.addLayer('MAIN');
 }
 
 function init()
 {
-	g_scr.randomScreen();
-	var txt = g_scr.buildText();
-	//window.setTimeout(loop,20);
+	g_scr.addLayer('MARKS');
+	var txt = g_scr.buildDisplay();
 	loop();
 }
 
