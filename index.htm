@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8" />
+	<title>EmulatroniX</title>
+	<link rel="stylesheet" type="text/css" href="PIXIVersion/css/base.css">
+</head>
+<body>
+	<div id="wrapper">
+		<div id="pixiscreen"></div>
+	</div>
+	
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+	<script src="https://pixijs.download/v4.5.2/pixi.min.js"></script>
+	<script src="PIXIVersion/js/RUNPIXI.js"></script>
+	
+	<!-- NEW for part 2.1 -->
+	<script src="PIXIVersion/js/EmuGraphicsAdapter.js"></script>
+
+	<!-- NEW for DEMO 1: Plasma -->
+	<script src="PIXIVersion/js/Plasma.js"></script>
+	
+	<script>
+		var emuGraphics = null;
+		var plasmaEffect = null;
+
+		function mainLoop() 
+		{
+			if(emuGraphics==null || plasmaEffect==null)
+				return;
+			plasmaEffect.update();
+			emuGraphics.switchBuffers();
+		}
+						
+		$(document).ready(function() 
+		{
+			// NEW FOR Anpassungen: Screengrösse.
+			// Resize the emulator screen if the window resizes.
+			RUNPIXI.instance.setResizeFunction(function() 
+			{
+				if(emuGraphics!=null)
+					emuGraphics.resize(emuGraphics.getResizeParameter());
+			});
+			// ENDOF NEW FOR Anpassungen.
+
+			var browserBackgroundColor = 0x111133;
+			RUNPIXI.initialize('pixiscreen', mainLoop, "transparent"); //browserBackgroundColor);
+			
+			// NEW for part 2.1
+			RUNPIXI.PIXELATED(); // use this for pixel perfect rendering.
+			
+			var emuWidth = 100;
+			var emuHeight = 100;
+			emuGraphics = new EmuGraphicsAdapter(emuWidth, emuHeight,0x000000,0x3333AA);
+
+			plasmaEffect = new Plasma(emuGraphics);
+			
+			console.log("Ready.");
+		});
+	</script>
+</body>
+</html>
