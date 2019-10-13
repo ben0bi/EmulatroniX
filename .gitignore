@@ -1,0 +1,12 @@
+JUMPEE/obj
+JUMPEE/obj/*
+JUMPEE/Logs
+JUMPEE/Logs/*
+JUMPEE/Library/metadata
+JUMPEE/Library/PackageCache
+JUMPEE/Library/ShaderCache
+JUMPEE/Library/StateCache
+
+
+
+
