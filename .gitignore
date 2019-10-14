@@ -2,10 +2,11 @@ JUMPEE/obj
 JUMPEE/obj/*
 JUMPEE/Logs
 JUMPEE/Logs/*
-JUMPEE/Library/metadata
-JUMPEE/Library/PackageCache
-JUMPEE/Library/ShaderCache
-JUMPEE/Library/StateCache
+JUMPEE/Library
+JUMPEE/Library/*
+JUMPEE/Temp/
+JUMPEE/Temp/*
+
 
 
 
