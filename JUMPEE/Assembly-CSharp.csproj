@@ -60,9 +60,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\emulators\Placeholder_Emulator.cs" />
     <Compile Include="Assets\FreeDraw\Scripts\Drawable.cs" />
     <Compile Include="Assets\FreeDraw\Scripts\DrawingSettings.cs" />
+    <Compile Include="Assets\scripts\EmuCreator.cs" />
     <Compile Include="Assets\scripts\EmuGraphicsAdapter.cs" />
+    <Compile Include="Assets\scripts\EmulatorBase.cs" />
     <Reference Include="Unity.TextMeshPro.Editor">
       <HintPath>C:/Users/ben0bi/Desktop/ARBEIT/TrailerGames/EmulatroniX/JUMPEE/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
     </Reference>

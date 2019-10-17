@@ -49,6 +49,7 @@ public class EmuGraphicsAdapter : MonoBehaviour
         m_display_renderer.receiveShadows = false;
         m_display_renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 
+        // set any display size at startup.
         setEmuScreenSize(50, 50);
     }
 
@@ -82,16 +83,16 @@ public class EmuGraphicsAdapter : MonoBehaviour
         {
            // get the aspect ratio of the sprite image.
            float aspectRatio = worldSpriteWidth / worldSpriteHeight;
+           Debug.Log("Aspect Ratio: " + aspectRatio);
+           float newy = newScale.x/aspectRatio;
            float newx = newScale.x;
-           float newy = newScale.x * aspectRatio;
            float wrldy = newy * local_sprite_size.y;
            // new height is bigger than screen height, switch aspect ratio calculation.
            if (wrldy > worldScreenHeight)
            {
                 newy = newScale.y;
-                newx = newScale.y / aspectRatio;
+                newx = newScale.y * aspectRatio;
            }
-
             newScale.x = newx;
             newScale.y = newy;
         }
@@ -99,7 +100,7 @@ public class EmuGraphicsAdapter : MonoBehaviour
         m_display_image.transform.localScale = newScale;
 
         Debug.Log("Emulator display size (Image Pixels): x" + sprite_size.x + " y" + sprite_size.y+" (P->LS) x"+local_sprite_size.x+" y"+local_sprite_size.y);
-        Debug.Log("Emulator display size (LS): x" + (newScale.x*local_sprite_size.x)+" y"+(newScale.y*local_sprite_size.y));
+        Debug.Log("Emulator display size (WS): x" + (newScale.x*local_sprite_size.x)+" y"+(newScale.y*local_sprite_size.y));
         Debug.Log("Real display size (WS): x" + worldScreenWidth + " y" + worldScreenHeight);
     }
 
@@ -174,10 +175,6 @@ public class EmuGraphicsAdapter : MonoBehaviour
             resized();
         }
 #endif
-
-        MarkPixelToChange(10, 10, Color.green);
-        MarkPixelToChange(11, 11, Color.yellow);
-        MarkPixelToChange(15, 15, Color.yellow);
         switchBuffers();        
     }
 
@@ -192,6 +189,12 @@ public class EmuGraphicsAdapter : MonoBehaviour
             return;
 
         m_cur_colors[array_pos] = color;
+    }
+
+    public void MarkPixelToChangePerIndex(int index, Color color)
+    {
+        if (index >= 0 && index < m_cur_colors.Length)
+            m_cur_colors[index] = color;
     }
 
     // apply all pixel changes.
